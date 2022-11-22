@@ -32,52 +32,118 @@ def readIn(file, process):
     return fullQueue
 
 
-def addLRU(localQueue, newVal, qSize):
+def addLRU(fullQueue, localQueue, page, qSize):
+    if (len(localQueue) == 0):
+        localQueue.append(str(fullQueue[0]) + ',' + str(qSize))
+    return localQueue
+    """
+    count = 0
+    localQueue.append()
+    for i in localQueue:
+
+        lru = parseLRU(i)
+
+        #localQueue.pop(count)
+        count += 1
+    
     if (len(localQueue) < qSize):
         print(f"newVal {newVal}")
         element = str(localQueue[newVal]) + ',' + str(5)
         localQueue.append(element)
     return element
+    """
+
+def missPage(fullQueue, localQueue, qSize, index):
+    count = 0
+    if (len(localQueue) == 0):
+        #localQueue.append(fullQueue[index])
+        page = fullQueue[0]
+        localQueue = addLRU(fullQueue, localQueue, page, qSize)
+    elif (len(localQueue) > 0 & len(localQueue) < qSize):
+        localQueue.append(fullQueue[index])
+    else:
+        for i in localQueue:
+            if (parseLRU(i) == 1):
+                localQueue.pop(count)
+                localQueue = updateLRU(localQueue, qSize)
+                localQueue.append(fullQueue[index])
+                break
+    return localQueue
 
 
-def hitLRU(localQueue, qSize, index):
+def createTableEntry(page, lru):
+    element = str(page) + ',' + str(lru)
+    return element
+
+def hitPage(localQueue, qSize, index):
+    count = 0
     maxVal = qSize
-    localQueue[index] = addLRU(localQueue, index, qSize)
+    lru = parseLRU(localQueue[index])
+    pageHit = parsePage(localQueue[index])
+    localQueue.pop(index)
+    for i in localQueue:
+        if (lru < parseLRU(i)):
+            page = parsePage(i)
+            lru = parseLRU(i) - 1
+            localQueue.pop(count)
+            localQueue.append(createTableEntry(page, i))
+            count += 1
+    localQueue.append(createTableEntry(pageHit, maxVal))
     return localQueue
     
 
-#def parsePage():
+def parsePage(element):
+    item = element.split(',')
+    page = int(item[0])
+    return page
 
-#def parseLRU():
 
-#def updateLRU(localQueue, qSize, index):
+def parseLRU(element):
+    item = str(element).split(',')
+    lru = int(item[1])
+    return lru
+
+def updateLRU(localQueue, qSize):
+    updatedQ = []
+    for i in localQueue:
+        lru = parseLRU(i) - 1
+        page = parsePage(i)
+        updatedQ.append(createTableEntry(page, lru))
+    return updatedQ
     #parseLRU()
     #for page in localQueue:
         #parseLRU()
 
-def checkHit(queue, localQueue, qSize, index):
+def checkHit(fullQueue, localQueue, qSize, index):
     count = 0
-    if (len(localQueue) > 0):
+    found = False
+    if (len(localQueue) == 0):
+        #addLRU(fullQueue, localQueue, count, qSize)
+        localQueue = missPage(fullQueue, localQueue, count, qSize)
+        print(localQueue[0])
+    elif (len(localQueue) > 0):
         for val in localQueue:
-            if val == queue[index]:
-                hitLRU(localQueue, qSize, count)
-                print(f"count in checkHit {count}")
+            if val == fullQueue[index]:
+                localQueue = hitPage(localQueue, qSize, count)
+                #print(f"count in checkHit {count}")
+                found = True
+                break
             count += 1
-    else:
-        addLRU(localQueue, count, qSize)
+        if (found == False):
+            localQueue = missPage(fullQueue, localQueue, qSize, index)
+    return localQueue
                 
                 
-        
-
 
 def completeProcess(queue, qSize):
     totalLoads = len(queue)
     count = 0
-    q = []
+    localQueue = []
     while True:
         if (count <= totalLoads):
-            q = checkHit(queue, q, qSize, count)
-            print(f"{q[0]}")
+            localQueue = checkHit(queue, localQueue, qSize, count)
+            print(f"{localQueue[0]}")
+            count += 1
         else:
             break
 
