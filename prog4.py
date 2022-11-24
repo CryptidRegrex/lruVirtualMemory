@@ -59,14 +59,20 @@ def missPage(fullQueue, localQueue, qSize, index):
         #localQueue.append(fullQueue[index])
         page = fullQueue[0]
         localQueue = addLRU(fullQueue, localQueue, page, qSize)
-    elif (len(localQueue) > 0 & len(localQueue) < qSize):
-        localQueue.append(fullQueue[index])
+        print(f"When local queue is 0 our value is {localQueue[0]}")
+        #print(f"q size in miss: {qSize}")
+    elif (len(localQueue) > 0 and len(localQueue) < qSize):
+        #print(f"Our localQueue len is: {len(localQueue)}")
+        localQueue.append(createTableEntry(fullQueue[index], (qSize - len(localQueue))))
+        print(f"Still filling array {localQueue[(len(localQueue) - 1)]}")
     else:
         for i in localQueue:
             if (parseLRU(i) == 1):
+                print("Are we hitting missPage once full?")
                 localQueue.pop(count)
                 localQueue = updateLRU(localQueue, qSize)
                 localQueue.append(fullQueue[index])
+                count += 1
                 break
     return localQueue
 
@@ -79,16 +85,20 @@ def hitPage(localQueue, qSize, index):
     count = 0
     maxVal = qSize
     lru = parseLRU(localQueue[index])
+    print(f"Index {index} In hitpage Page {parsePage(localQueue[index])} lru {parseLRU(localQueue[index])}")
     pageHit = parsePage(localQueue[index])
     localQueue.pop(index)
     for i in localQueue:
         if (lru < parseLRU(i)):
             page = parsePage(i)
             lru = parseLRU(i) - 1
+            print(f"page {page} new lru {lru}")
             localQueue.pop(count)
             localQueue.append(createTableEntry(page, i))
             count += 1
     localQueue.append(createTableEntry(pageHit, maxVal))
+    #for i in localQueue:
+        #print(f"After hitPage before return {i}")
     return localQueue
     
 
@@ -117,20 +127,24 @@ def updateLRU(localQueue, qSize):
 def checkHit(fullQueue, localQueue, qSize, index):
     count = 0
     found = False
-    if (len(localQueue) == 0):
-        #addLRU(fullQueue, localQueue, count, qSize)
-        localQueue = missPage(fullQueue, localQueue, count, qSize)
-        print(localQueue[0])
-    elif (len(localQueue) > 0):
+    if (len(localQueue) > 0):
         for val in localQueue:
-            if val == fullQueue[index]:
+            if parsePage(val) == fullQueue[index]:
+                #print(f"localQueue page {parsePage(val)} fullQueue page {fullQueue[index]}")
                 localQueue = hitPage(localQueue, qSize, count)
                 #print(f"count in checkHit {count}")
                 found = True
                 break
             count += 1
+        #print(found)
         if (found == False):
             localQueue = missPage(fullQueue, localQueue, qSize, index)
+    elif (len(localQueue) == 0):
+        #addLRU(fullQueue, localQueue, count, qSize)
+        localQueue = missPage(fullQueue, localQueue, qSize, count)
+        #print(localQueue[0])
+    for i in localQueue:
+        print(f"After checkHit before return {i}")
     return localQueue
                 
                 
@@ -141,8 +155,10 @@ def completeProcess(queue, qSize):
     localQueue = []
     while True:
         if (count <= totalLoads):
+            #print(f"len value for localQueue {len(localQueue)}")
+            #print(count)
             localQueue = checkHit(queue, localQueue, qSize, count)
-            print(f"{localQueue[0]}")
+            #print(f"{localQueue[count]}")
             count += 1
         else:
             break
