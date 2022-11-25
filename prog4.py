@@ -63,7 +63,8 @@ def addLRU(fullQueue, localQueue, page, qSize):
 def missPage(fullQueue, localQueue, qSize, index):
     global miss
     miss += 1
-    print(fullQueue[index])
+    #print(f"SIZE of our localQueue at the beginning of missPage function: {len(localQueue)}")
+    #print(fullQueue[index])
     retLocalQueue = []
     count = 0
     if (len(localQueue) == 0):
@@ -72,7 +73,7 @@ def missPage(fullQueue, localQueue, qSize, index):
         retLocalQueue = addLRU(fullQueue, localQueue, page, qSize)
         #print(f"When local queue is 0 our value is {localQueue[0]}")
         #print(f"q size in miss: {qSize}")
-    elif (len(localQueue) > 0 and len(localQueue) < qSize):
+    elif (len(localQueue) > 0 and (len(localQueue) < qSize)):
         #print(f"Our localQueue len is: {len(localQueue)}")
         #for i in localQueue:
             #print(f"What are we about to look through in missPage before the queue is full? {i}")
@@ -82,18 +83,27 @@ def missPage(fullQueue, localQueue, qSize, index):
             retainPage = parsePage(i)
             #localQueue.pop(count)
             retLocalQueue.append(createTableEntry(retainPage, newLru))
-            count += 1
+            #count += 1
         retLocalQueue.append(createTableEntry(fullQueue[index], qSize))
+        #print(f"After our elif statement our retlocalQueue is size: {len(retLocalQueue)}")
         #print(f"Still filling array {localQueue[(len(localQueue) - 1)]}")
     else:
         for i in localQueue:
+            #for x in localQueue:
+                #print(f"Our values in the localQueue before checking if lru == 1 {x}")
+            #print(f"ELSE statement in missPage function size of local queue {len(retLocalQueue)}")
             if (parseLRU(i) == 1):
                 #print("Are we hitting missPage once full?")
+                #print(parseLRU(i))
                 localQueue.pop(count)
                 retLocalQueue = updateLRU(localQueue, qSize)
                 retLocalQueue.append(createTableEntry(fullQueue[index], qSize))
-                count += 1
+                #print(f"ELSE statement in missPage function size of local queue {len(retLocalQueue)}")
                 break
+            count += 1
+        #for x in retLocalQueue:
+            #print(f"Our values when returning from missPage ELSE: {x}")    
+    #print(f"When returning our localQueue in missPage function the size is: {len(retLocalQueue)}")
     return retLocalQueue
 
 
@@ -103,24 +113,35 @@ def createTableEntry(page, lru):
 
 def hitPage(localQueue, qSize, index):
     global hit 
-    hit += 1
+    #hit += 1
+    retLocalQueue = []
     count = 0
     maxVal = qSize
     lru = parseLRU(localQueue[index])
     #print(f"Index {index} In hitpage Page {parsePage(localQueue[index])} lru {parseLRU(localQueue[index])}")
     pageHit = parsePage(localQueue[index])
     localQueue.pop(index)
-    for i in localQueue:
-        if (lru < parseLRU(i)):
-            page = parsePage(i)
-            lru = parseLRU(i) - 1
+    #for i in localQueue:
+        #print(f"After popping the value we have these in the localQ {i} and our len of localQ is {len(localQueue)}")
+    totalVals = len(localQueue)
+    while count < totalVals:
+    #for i in localQueue:
+        if (lru < parseLRU(localQueue[count])):
+            page = parsePage(localQueue[count])
+            newlru = parseLRU(localQueue[count]) - 1
             #print(f"page {page} new lru {lru}")
-            localQueue.pop(count)
-            localQueue.append(createTableEntry(page, lru))
-            count += 1
-    localQueue.append(createTableEntry(pageHit, maxVal))
+            #print(f"localQueue with count before pop {localQueue[count]}")
+            #localQueue.pop(count)
+            #localQueue.append(createTableEntry(page, newlru))
+            retLocalQueue.append(createTableEntry(page, newlru))
+        else:
+            retLocalQueue.append(localQueue[count])
+        count += 1
+    retLocalQueue.append(createTableEntry(pageHit, maxVal))
+    localQueue = retLocalQueue
     #for i in localQueue:
         #print(f"After hitPage before return {i}")
+    #print(f"When returning our localQueue in hitPage function the size is: {len(localQueue)}")
     return localQueue
     
 
@@ -141,6 +162,7 @@ def updateLRU(localQueue, qSize):
         lru = parseLRU(i) - 1
         page = parsePage(i)
         updatedQ.append(createTableEntry(page, lru))
+    #print(f"When returning our localQueue in updateLRU function the size is: {len(localQueue)}")
     return updatedQ
     #parseLRU()
     #for page in localQueue:
@@ -151,9 +173,13 @@ def checkHit(fullQueue, localQueue, qSize, index):
     found = False
     if (len(localQueue) > 0):
         for val in localQueue:
+            #print(f"localQueue page {parsePage(val)} fullQueue page {fullQueue[index]}")
             if parsePage(val) == fullQueue[index]:
-                #print(f"localQueue page {parsePage(val)} fullQueue page {fullQueue[index]}")
+                global hit
+                hit += 1
+                #print(f"The size of our localQueue before a hitPage call is: {len(localQueue)}")
                 localQueue = hitPage(localQueue, qSize, count)
+                #print(f"WE FOUND OUR VALUE | localQueue page {parsePage(val)} fullQueue page {fullQueue[index]}")
                 #print(f"count in checkHit {count}")
                 found = True
                 break
@@ -165,8 +191,9 @@ def checkHit(fullQueue, localQueue, qSize, index):
         #addLRU(fullQueue, localQueue, count, qSize)
         localQueue = missPage(fullQueue, localQueue, qSize, count)
         #print(localQueue[0])
-    for i in localQueue:
-        print(f"After checkHit before return {i}")
+    #for i in localQueue:
+        #print(f"After checkHit before return {i}")
+    #print("checkHit is finished")
     return localQueue
                 
                 
