@@ -1,5 +1,8 @@
 import sys
 
+hit = 0
+miss = 0
+
 
 def main():
     len(sys.argv)
@@ -17,6 +20,10 @@ def main():
     q2 = readIn(args[1], 2)
     q3 = readIn(args[1], 3)
     q4 = readIn(args[1], 4)
+    totalP = hit + miss
+    print(f"Our hit rate {hit/totalP * 100}")
+    print(hit)
+    print(miss)
     exit(0)
 
 
@@ -54,27 +61,40 @@ def addLRU(fullQueue, localQueue, page, qSize):
     """
 
 def missPage(fullQueue, localQueue, qSize, index):
+    global miss
+    miss += 1
+    print(fullQueue[index])
+    retLocalQueue = []
     count = 0
     if (len(localQueue) == 0):
         #localQueue.append(fullQueue[index])
         page = fullQueue[0]
-        localQueue = addLRU(fullQueue, localQueue, page, qSize)
-        print(f"When local queue is 0 our value is {localQueue[0]}")
+        retLocalQueue = addLRU(fullQueue, localQueue, page, qSize)
+        #print(f"When local queue is 0 our value is {localQueue[0]}")
         #print(f"q size in miss: {qSize}")
     elif (len(localQueue) > 0 and len(localQueue) < qSize):
         #print(f"Our localQueue len is: {len(localQueue)}")
-        localQueue.append(createTableEntry(fullQueue[index], (qSize - len(localQueue))))
-        print(f"Still filling array {localQueue[(len(localQueue) - 1)]}")
+        #for i in localQueue:
+            #print(f"What are we about to look through in missPage before the queue is full? {i}")
+        for i in localQueue:
+            #print(f"Our value being analyized in missPage is {i}")
+            newLru = parseLRU(i) - 1
+            retainPage = parsePage(i)
+            #localQueue.pop(count)
+            retLocalQueue.append(createTableEntry(retainPage, newLru))
+            count += 1
+        retLocalQueue.append(createTableEntry(fullQueue[index], qSize))
+        #print(f"Still filling array {localQueue[(len(localQueue) - 1)]}")
     else:
         for i in localQueue:
             if (parseLRU(i) == 1):
-                print("Are we hitting missPage once full?")
+                #print("Are we hitting missPage once full?")
                 localQueue.pop(count)
-                localQueue = updateLRU(localQueue, qSize)
-                localQueue.append(fullQueue[index])
+                retLocalQueue = updateLRU(localQueue, qSize)
+                retLocalQueue.append(createTableEntry(fullQueue[index], qSize))
                 count += 1
                 break
-    return localQueue
+    return retLocalQueue
 
 
 def createTableEntry(page, lru):
@@ -82,19 +102,21 @@ def createTableEntry(page, lru):
     return element
 
 def hitPage(localQueue, qSize, index):
+    global hit 
+    hit += 1
     count = 0
     maxVal = qSize
     lru = parseLRU(localQueue[index])
-    print(f"Index {index} In hitpage Page {parsePage(localQueue[index])} lru {parseLRU(localQueue[index])}")
+    #print(f"Index {index} In hitpage Page {parsePage(localQueue[index])} lru {parseLRU(localQueue[index])}")
     pageHit = parsePage(localQueue[index])
     localQueue.pop(index)
     for i in localQueue:
         if (lru < parseLRU(i)):
             page = parsePage(i)
             lru = parseLRU(i) - 1
-            print(f"page {page} new lru {lru}")
+            #print(f"page {page} new lru {lru}")
             localQueue.pop(count)
-            localQueue.append(createTableEntry(page, i))
+            localQueue.append(createTableEntry(page, lru))
             count += 1
     localQueue.append(createTableEntry(pageHit, maxVal))
     #for i in localQueue:
@@ -154,7 +176,7 @@ def completeProcess(queue, qSize):
     count = 0
     localQueue = []
     while True:
-        if (count <= totalLoads):
+        if (count < totalLoads):
             #print(f"len value for localQueue {len(localQueue)}")
             #print(count)
             localQueue = checkHit(queue, localQueue, qSize, count)
