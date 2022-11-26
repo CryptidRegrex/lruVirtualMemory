@@ -5,6 +5,8 @@ miss = 0
 
 
 def main():
+    totalHit = 0
+    allPages = 0
     len(sys.argv)
     args = []
     args = sys.argv
@@ -15,15 +17,47 @@ def main():
     if len(args) != 6:
         print("You are missing a parameter please enter algorithm type, queue size, and input file.... exiting")
         exit(0)
+    totals = []
+    global hit
+    global miss
+    #Process 1
     q1 = readIn(args[1], 1)
     completeProcess(q1, args[2])
-    q2 = readIn(args[1], 2)
-    q3 = readIn(args[1], 3)
-    q4 = readIn(args[1], 4)
+    totalHit += hit
+    allPages += hit + miss
     totalP = hit + miss
-    print(f"Our hit rate {hit/totalP * 100}")
-    print(hit)
-    print(miss)
+    totals.append(hit/totalP * 100)
+    hit = 0
+    miss = 0
+    #Process 2
+    q2 = readIn(args[1], 2)
+    completeProcess(q2, args[3])
+    totalHit += hit
+    allPages += hit + miss
+    totalP = hit + miss
+    totals.append(hit/totalP * 100)
+    hit = 0
+    miss = 0
+    #Process 3
+    q3 = readIn(args[1], 3)
+    completeProcess(q3, args[4])
+    totalHit += hit
+    allPages += hit + miss
+    totalP = hit + miss
+    totals.append(hit/totalP * 100)
+    hit = 0
+    miss = 0
+    #Process 4
+    q4 = readIn(args[1], 4)
+    completeProcess(q4, args[5])
+    totalHit += hit
+    allPages += hit + miss
+    totalP = hit + miss
+    totals.append(hit/totalP * 100)
+    #Print final values
+    print(f"P1: {totals[0]} P2: {totals[1]} P3: {totals[2]} P4: {totals[3]} PT: {totalHit/allPages * 100}")
+    #print(hit)
+    #print(miss)
     exit(0)
 
 
